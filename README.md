@@ -45,7 +45,7 @@ Claire is an AI-powered Chrome extension that functions as an all-in-one assista
 
 1. Download and install [LM Studio](https://lmstudio.ai/)
 2. Load a model in LM Studio
-3. Start the local server in LM Studio (default: http://localhost:6223/v1)
+3. Start the local server in LM Studio (default: http://localhost:<LOCAL_PORT>/v1)
 4. Configure the extension to use your LM Studio API endpoint
 
 ## Configuration

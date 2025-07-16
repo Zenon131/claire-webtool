@@ -1,6 +1,7 @@
 import axios from "axios";
 
-interface ChatMessage {
+// Export the ChatMessage interface so it can be imported elsewhere
+export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
@@ -81,7 +82,7 @@ interface APIConfiguration {
   cloudProvider?: CloudProvider;
 }
 
-class LMStudioAPI {
+export class LMStudioAPI {
   private baseUrl: string;
   private defaultModel: string;
   private tools: Map<string, Tool> = new Map();
@@ -656,4 +657,190 @@ Instructions:
 
     return suggestions;
   }
+
+  // Missing method implementations
+  private async performTextAnalysis(text: string, type: string): Promise<any> {
+    // Simple text analysis implementation
+    switch (type.toLowerCase()) {
+      case 'sentiment':
+        // Basic sentiment analysis (placeholder)
+        const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic'];
+        const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'disappointing'];
+        
+        const words = text.toLowerCase().split(/\s+/);
+        const positive = words.filter(word => positiveWords.includes(word)).length;
+        const negative = words.filter(word => negativeWords.includes(word)).length;
+        
+        return {
+          sentiment: positive > negative ? 'positive' : negative > positive ? 'negative' : 'neutral',
+          score: (positive - negative) / words.length,
+          positiveWords: positive,
+          negativeWords: negative
+        };
+        
+      case 'keywords':
+        // Extract potential keywords (words longer than 3 characters, not common words)
+        const commonWords = ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use'];
+        const keywords = text.toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .split(/\s+/)
+          .filter(word => word.length > 3 && !commonWords.includes(word))
+          .reduce((acc: {[key: string]: number}, word) => {
+            acc[word] = (acc[word] || 0) + 1;
+            return acc;
+          }, {});
+        
+        return {
+          keywords: Object.entries(keywords)
+            .sort(([,a], [,b]) => (b as number) - (a as number))
+            .slice(0, 10)
+            .map(([word, count]) => ({ word, count }))
+        };
+        
+      case 'readability':
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        const wordsCount = text.split(/\s+/).length;
+        const avgWordsPerSentence = wordsCount / sentences.length;
+        const avgCharsPerWord = text.replace(/\s/g, '').length / wordsCount;
+        
+        return {
+          wordCount: wordsCount,
+          sentenceCount: sentences.length,
+          averageWordsPerSentence: Math.round(avgWordsPerSentence * 100) / 100,
+          averageCharsPerWord: Math.round(avgCharsPerWord * 100) / 100,
+          readabilityScore: avgWordsPerSentence < 15 && avgCharsPerWord < 5 ? 'Easy' : 
+                           avgWordsPerSentence < 20 && avgCharsPerWord < 6 ? 'Medium' : 'Hard'
+        };
+        
+      case 'structure':
+        return {
+          paragraphs: text.split(/\n\s*\n/).length,
+          lines: text.split('\n').length,
+          characters: text.length,
+          charactersNoSpaces: text.replace(/\s/g, '').length
+        };
+        
+      default:
+        throw new Error(`Unknown analysis type: ${type}`);
+    }
+  }
+
+  private async createSummary(content: string, focus: string = 'key_points', length: string = 'medium'): Promise<any> {
+    // Simple summarization implementation
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const maxSentences = length === 'brief' ? 2 : length === 'medium' ? 5 : 10;
+    
+    // Simple sentence scoring based on word frequency
+    const words = content.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/);
+    const wordFreq: {[key: string]: number} = {};
+    words.forEach(word => {
+      if (word.length > 3) {
+        wordFreq[word] = (wordFreq[word] || 0) + 1;
+      }
+    });
+    
+    const scoredSentences = sentences.map(sentence => {
+      const sentenceWords = sentence.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/);
+      const score = sentenceWords.reduce((sum, word) => sum + (wordFreq[word] || 0), 0) / sentenceWords.length;
+      return { sentence: sentence.trim(), score };
+    });
+    
+    const topSentences = scoredSentences
+      .sort((a, b) => b.score - a.score)
+      .slice(0, Math.min(maxSentences, sentences.length))
+      .sort((a, b) => sentences.indexOf(a.sentence) - sentences.indexOf(b.sentence));
+    
+    return {
+      summary: topSentences.map(s => s.sentence).join('. ') + '.',
+      originalLength: content.length,
+      summaryLength: topSentences.map(s => s.sentence).join('. ').length,
+      compressionRatio: Math.round((1 - topSentences.map(s => s.sentence).join('. ').length / content.length) * 100),
+      focus
+    };
+  }
+
+  private async createTaskPlan(task: string, context?: string): Promise<any> {
+    // Simple task planning implementation
+    const steps = [
+      'Analyze the task requirements',
+      'Gather necessary resources and information',
+      'Break down into smaller sub-tasks',
+      'Execute each sub-task in sequence',
+      'Review and validate results',
+      'Document the process and outcomes'
+    ];
+    
+    return {
+      task,
+      context: context || 'No additional context provided',
+      estimatedSteps: steps.length,
+      steps: steps.map((step, index) => ({
+        id: index + 1,
+        description: step,
+        status: 'pending',
+        estimatedTime: '15-30 minutes'
+      })),
+      totalEstimatedTime: '1.5-3 hours',
+      priority: 'medium',
+      complexity: task.length > 100 ? 'high' : task.length > 50 ? 'medium' : 'low'
+    };
+  }
+
+  private detectToolRequests(content: string): ToolCall[] {
+    const toolCalls: ToolCall[] = [];
+    
+    // Pattern 1: [TOOL]{...}[/TOOL]
+    const toolRegex = /\[TOOL\]({.*?})\[\/TOOL\]/gs;
+    let match;
+    while ((match = toolRegex.exec(content)) !== null) {
+      try {
+        const toolCall = JSON.parse(match[1]);
+        if (toolCall.name && toolCall.parameters) {
+          toolCalls.push(toolCall);
+        }
+      } catch (error) {
+        console.warn('Failed to parse tool call:', match[1]);
+      }
+    }
+    
+    // Pattern 2: Use [tool_name] tool with [query]
+    const availableTools = Array.from(this.tools.keys());
+    for (const toolName of availableTools) {
+      const usePattern = new RegExp(`use ${toolName} tool with\\s+(.+?)(?=\\.|$)`, 'gi');
+      const useMatch = usePattern.exec(content);
+      if (useMatch) {
+        toolCalls.push({
+          name: toolName,
+          parameters: { query: useMatch[1].trim() }
+        });
+      }
+      
+      // Pattern 3: /tool_name [query]
+      const slashPattern = new RegExp(`\\/${toolName}\\s+(.+?)(?=\\.|$)`, 'gi');
+      const slashMatch = slashPattern.exec(content);
+      if (slashMatch) {
+        toolCalls.push({
+          name: toolName,
+          parameters: { query: slashMatch[1].trim() }
+        });
+      }
+    }
+    
+    return toolCalls;
+  }
+
+  private async processToolChain(toolCalls: ToolCall[]): Promise<string[]> {
+    const results: string[] = [];
+    
+    for (const toolCall of toolCalls) {
+      const result = await this.processToolCall(toolCall);
+      results.push(result);
+    }
+    
+    return results;
+  }
 }
+
+// Create and export a default instance
+const lmStudioApi = new LMStudioAPI();
+export default lmStudioApi;

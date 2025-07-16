@@ -7,6 +7,8 @@
     "build": "webpack --config webpack.prod.js"
   },
   "dependencies": {
+    "@capacitor/cli": "^7.4.1",
+    "@capacitor/core": "^7.4.1",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",

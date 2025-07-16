@@ -29,6 +29,7 @@ import LanguageIcon from "@mui/icons-material/Language";
 import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CloseIcon from "@mui/icons-material/Close";
+import { FormControlLabel, Switch } from "@mui/material";
 import Chat from "./components/Chat";
 
 // Create theme
@@ -125,6 +126,8 @@ const Popup: React.FC = () => {
   const [showModeMenu, setShowModeMenu] = useState(false);
   const [apiUrl, setApiUrl] = useState("http://localhost:6223/v1");
   const [modelName, setModelName] = useState("google/gemma-3-4b");
+  const [useOllama, setUseOllama] = useState(false);
+const [ollamaModel, setOllamaModel] = useState("gemma3:4b");
   const modeMenuRef = useRef<HTMLDivElement>(null);
 
   const handleModeSelect = (mode: string) => {
@@ -162,6 +165,8 @@ const Popup: React.FC = () => {
       {
         lmStudioApiUrl: apiUrl,
         lmStudioModelName: modelName,
+        useOllama: useOllama,
+        ollamaModel: ollamaModel
       },
       () => {
         console.log("Settings saved");
@@ -173,13 +178,19 @@ const Popup: React.FC = () => {
   // Load settings on component mount
   React.useEffect(() => {
     chrome.storage.sync.get(
-      ["lmStudioApiUrl", "lmStudioModelName"],
+      ["lmStudioApiUrl", "lmStudioModelName", "useOllama", "ollamaModel"],
       (result) => {
         if (result.lmStudioApiUrl) {
           setApiUrl(result.lmStudioApiUrl);
         }
         if (result.lmStudioModelName) {
           setModelName(result.lmStudioModelName);
+        }
+        if (result.useOllama !== undefined) {
+          setUseOllama(result.useOllama);
+        }
+        if (result.ollamaModel) {
+          setOllamaModel(result.ollamaModel);
         }
       }
     );
@@ -514,6 +525,37 @@ const Popup: React.FC = () => {
                   },
                 }}
               />
+              
+              {/* Add the Ollama settings here */}
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={useOllama}
+                      onChange={(e) => setUseOllama(e.target.checked)}
+                    />
+                  }
+                  label="Use Ollama (instead of LM Studio)"
+                />
+              </Box>
+
+              {useOllama && (
+                <TextField
+                  fullWidth
+                  label="Ollama Model"
+                  variant="outlined"
+                  value={ollamaModel}
+                  onChange={(e) => setOllamaModel(e.target.value)}
+                  margin="normal"
+                  helperText="Model to use with Ollama (e.g., llama3, mistral, codellama)"
+                  sx={{
+                    mb: 1,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                    },
+                  }}
+                />
+              )}
             </Paper>
 
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>

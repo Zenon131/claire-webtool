@@ -31,7 +31,9 @@ import LanguageIcon from '@mui/icons-material/Language';
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ReactMarkdown from 'react-markdown';
-import lmStudioApi, { ChatMessage } from '../api/lmStudioApi';
+import lmStudioApi from '../api/lmStudioApi';
+import { ChatMessage } from '../api/lmStudioApi';
+import ollamaService from '../api/ollamaService';
 
 interface ChatProps {
   initialMode?: string;
@@ -185,6 +187,22 @@ const Chat: React.FC<ChatProps> = ({ initialMode = 'general' }) => {
       setMessages([...updatedMessages, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+
+    try {
+    // Check settings to determine which API to use
+    const useOllama = await chrome.storage.sync.get('useOllama');
+    
+    let response;
+    if (useOllama) {
+      response = await ollamaService.generateResponse(userContent);
+    } else {
+      response = await lmStudioApi.chatCompletion(updatedMessages);
+    }
+    
+    // ... rest of your existing code ...
+    } catch (error) {
+      console.error('Error generating response:', error);
     }
   };
 
@@ -588,12 +606,15 @@ const Chat: React.FC<ChatProps> = ({ initialMode = 'general' }) => {
           }}>
             {mode === 'pdf' && (
               <>
-                <input
+                <Box
+                  component="input"
                   type="file"
                   accept="application/pdf"
-                  style={{ display: 'none' }}
                   ref={fileInputRef}
                   onChange={handleFileUpload}
+                  aria-label="Upload PDF file"
+                  title="Upload PDF file for analysis"
+                  sx={{ display: 'none' }}
                 />
                 <Button
                   variant="outlined"

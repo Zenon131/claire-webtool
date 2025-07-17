@@ -21,6 +21,8 @@
   "host_permissions": [
     "http://localhost:*/*",
     "http://127.0.0.1:*/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*",
     "https://en.wikipedia.org/*",
     "https://www.youtube.com/*",
     "https://youtube.com/*",

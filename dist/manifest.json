@@ -8,10 +8,29 @@
     "activeTab",
     "scripting",
     "tabs",
-    "sidePanel"
+    "sidePanel",
+    "contextMenus",
+    "notifications",
+    "clipboardWrite",
+    "clipboardRead",
+    "bookmarks",
+    "history",
+    "downloads",
+    "offscreen"
   ],
   "host_permissions": [
     "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*",
+    "https://en.wikipedia.org/*",
+    "https://www.youtube.com/*",
+    "https://youtube.com/*",
+    "https://www.google.com/*",
+    "https://duckduckgo.com/*",
+    "https://api.serpapi.com/*"
+  ],
+  "optional_host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
@@ -23,6 +42,22 @@
   },
   "side_panel": {
     "default_path": "popup.html"
+  },
+  "commands": {
+    "toggle-sidebar": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C",
+        "mac": "Command+Shift+C"
+      },
+      "description": "Toggle CLAIRE sidebar"
+    },
+    "quick-assist": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "Quick AI assistance"
+    }
   },
   "icons": {
     "16": "icons/icon16.png",

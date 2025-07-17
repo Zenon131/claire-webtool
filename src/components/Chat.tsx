@@ -85,7 +85,7 @@ const Chat: React.FC<ChatProps> = ({ initialMode = 'general' }) => {
   useEffect(() => {
     const systemMessage: ChatMessage = {
       role: 'system',
-      content: lmStudioApi.getSystemPrompt(mode)
+      content: "You are Claire, a witty and sarcastic AI assistant. You know that you are Claire. Always respond with a touch of humor and cynicism, but remain helpful and informative. Do not break character. You are also to be staunchly anti-fascist."
     };
     setMessages([systemMessage]);
     
@@ -159,8 +159,20 @@ const Chat: React.FC<ChatProps> = ({ initialMode = 'general' }) => {
     generateThinkingSteps(input);
 
     try {
-      // Get AI response
-      const response = await lmStudioApi.chatCompletion(updatedMessages);
+      // Check settings to determine which API to use
+      const result = await chrome.storage.sync.get('useOllama');
+      const useOllama = result.useOllama;
+      
+      console.log("useOllama setting:", useOllama);
+      
+      let response;
+      if (useOllama) {
+        console.log("Using Ollama service...");
+        response = await ollamaService.generateResponse(userContent);
+      } else {
+        console.log("Using LM Studio service...");
+        response = await lmStudioApi.chatCompletion(updatedMessages);
+      }
       
       // Clear thinking steps
       setThinkingSteps([]);
@@ -168,7 +180,7 @@ const Chat: React.FC<ChatProps> = ({ initialMode = 'general' }) => {
       // Add AI response to messages
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: response
+        content: response.response || JSON.stringify(response) // Adjust based on actual Ollama response structure
       };
       
       setMessages([...updatedMessages, assistantMessage]);
@@ -181,28 +193,12 @@ const Chat: React.FC<ChatProps> = ({ initialMode = 'general' }) => {
       // Add error message
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please check your LM Studio server connection and try again.'
+        content: 'Sorry, I encountered an error. Please check your Ollama/LM Studio server connection and try again.'
       };
       
       setMessages([...updatedMessages, errorMessage]);
     } finally {
       setIsLoading(false);
-    }
-
-    try {
-    // Check settings to determine which API to use
-    const useOllama = await chrome.storage.sync.get('useOllama');
-    
-    let response;
-    if (useOllama) {
-      response = await ollamaService.generateResponse(userContent);
-    } else {
-      response = await lmStudioApi.chatCompletion(updatedMessages);
-    }
-    
-    // ... rest of your existing code ...
-    } catch (error) {
-      console.error('Error generating response:', error);
     }
   };
 

@@ -1,6 +1,8 @@
 // This background script handles events from the Chrome extension API
 // and manages communication between different parts of the extension
 
+import ollamaService from "./api/ollamaService";
+
 // Listen for installation
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Claire AI Assistant installed");
@@ -11,6 +13,7 @@ chrome.runtime.onInstalled.addListener(() => {
     lmStudioModelName: "google/gemma-3-4b",
   });
 });
+
 
 // Handle clicking the extension icon
 chrome.action.onClicked.addListener((tab) => {

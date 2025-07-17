@@ -526,7 +526,8 @@ const [ollamaModel, setOllamaModel] = useState("gemma3:4b");
                 }}
               />
               
-              {/* Add the Ollama settings here */}
+              {/* Ollama settings commented out temporarily */}
+              {/*
               <Box sx={{ mt: 3, mb: 2 }}>
                 <FormControlLabel
                   control={
@@ -556,6 +557,7 @@ const [ollamaModel, setOllamaModel] = useState("gemma3:4b");
                   }}
                 />
               )}
+              */}
             </Paper>
 
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
